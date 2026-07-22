@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this formalization, please cite this repository and the accompanying manuscript."
+title: "An Unconditional Proof of the Logarithmic Morris Constant-Term Identity"
+type: software
+authors:
+  - family-names: Hu
+    given-names: Yongcheng
+    email: 252111040@csu.edu.cn
+    affiliation: Central South University
+version: 1.0.0
+date-released: 2026-07-22
+repository-code: "https://github.com/halfblood12312300-cell/logarithmic-morris-lean"
+license: NOASSERTION

@@ -1,0 +1,26 @@
+name: Lean proof audit
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: true
+          build-args: logarithmicmorris.LogarithmicMorrisFull
+          test: false
+          lint: false
+          nanoda: true
+          nanoda-allow-sorry: false
+      - name: Report the final theorem's axiom closure
+        run: lake env lean --trust=0 logarithmicmorris/LogarithmicMorrisAudit.lean

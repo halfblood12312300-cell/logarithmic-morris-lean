@@ -1,0 +1,23 @@
+name = "logarithmic_morris"
+version = "1.0.0"
+keywords = ["combinatorics", "constant terms", "Lean", "Morris identity"]
+defaultTargets = ["logarithmicmorris"]
+
+[leanOptions]
+pp.unicode.fun = true
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.28.0"
+
+[[lean_lib]]
+name = "logarithmicmorris"
+globs = ["logarithmicmorris", "logarithmicmorris.+"]
+
+[[lean_lib]]
+name = "laurent"
+globs = ["laurent", "laurent.+"]

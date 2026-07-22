@@ -1,0 +1,12 @@
+/.lake/
+/.elan/
+*.olean
+*.ilean
+*.trace
+*.log
+*.aux
+*.fls
+*.fdb_latexmk
+*.out
+*.toc
+.DS_Store
