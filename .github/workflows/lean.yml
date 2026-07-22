@@ -17,7 +17,7 @@ jobs:
         with:
           auto-config: false
           build: true
-          build-args: logarithmicmorris.LogarithmicMorrisFull
+          build-args: logarithmicmorris
           test: false
           lint: false
           nanoda: true
