@@ -1545,9 +1545,8 @@ inferred from file names or a textual search: it is certified by the
 kernel-level \texttt{\#print axioms} report reproduced above.  The
 repository also includes a GitHub Actions workflow that rebuilds the
 complete release library, rejects \texttt{sorry}, \texttt{sorryAx}, and
-local \texttt{axiom} declarations, runs the Lean~4.28
-\texttt{leanchecker} environment verifier, and prints the same axiom
-closure.
+local \texttt{axiom} declarations, uses the pinned Lean~\texttt{v4.28.0}
+toolchain, and prints the same axiom closure.
 
 \section*{Relation to the Original Conditional Proof}
 

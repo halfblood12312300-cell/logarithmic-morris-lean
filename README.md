@@ -76,9 +76,9 @@ The accompanying English manuscript is available as
 ## Continuous verification
 
 The GitHub Actions workflow rejects `sorry`, `sorryAx`, and local `axiom`
-declarations, builds the complete release library, runs the Lean 4.28
-`leanchecker` environment verifier, and prints the final theorem's axiom
-closure under `--trust=0`.
+declarations, builds the complete release library with the pinned Lean
+`v4.28.0` toolchain, and prints the final theorem's axiom closure under
+`--trust=0`.
 
 ## Author
 

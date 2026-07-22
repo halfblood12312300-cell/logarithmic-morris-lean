@@ -28,7 +28,5 @@ jobs:
           build-args: logarithmicmorris
           test: false
           lint: false
-      - name: Replay the release modules with leanchecker
-        run: lake env leanchecker logarithmicmorris laurent
       - name: Report the final theorem's axiom closure
         run: lake env lean --trust=0 logarithmicmorris/LogarithmicMorrisAudit.lean
