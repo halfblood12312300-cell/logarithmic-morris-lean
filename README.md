@@ -25,7 +25,7 @@ compact interval.
 ## Reproduce the build from a fresh clone
 
 The repository pins Lean and Mathlib through `lean-toolchain`,
-`lakefile.toml`, and `lake-manifest.json`.
+`lakefile.lean`, and `lake-manifest.json`.
 
 ```bash
 git clone https://github.com/halfblood12312300-cell/logarithmic-morris-lean.git
