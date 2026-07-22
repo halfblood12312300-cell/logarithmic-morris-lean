@@ -1,0 +1,1602 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=25mm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,array,longtable}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!55!black,
+  citecolor=blue!55!black,
+  urlcolor=blue!55!black,
+  pdftitle={An Unconditional Proof of the Logarithmic Morris Constant-Term Identity},
+  pdfauthor={Yongcheng Hu},
+  pdfsubject={An unconditional proof with a semantic audit of the Lean 4.28 formalization},
+  pdfkeywords={constant term, Morris identity, Dyson identity, Pfaffian, Lean}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{The Logarithmic Morris Constant-Term Identity}
+\fancyhead[R]{An Unconditional Proof}
+\fancyfoot[C]{\thepage}
+
+\setlength{\parindent}{1.5em}
+\setlength{\parskip}{0.22em}
+\setlist{nosep,leftmargin=2.2em}
+\allowdisplaybreaks[3]
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\CT}{\operatorname{CT}}
+\newcommand{\Alt}{\operatorname{Alt}}
+\newcommand{\Pf}{\operatorname{Pf}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\sgn}{\operatorname{sgn}}
+\newcommand{\e}{\mathrm e}
+\newcommand{\T}{\mathbb T}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\C}{\mathbb C}
+\newcommand{\E}{\mathbb E}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Logc}{\operatorname{Log}_{\circ}}
+
+\title{\bfseries An Unconditional Proof of the Logarithmic Morris
+Constant-Term Identity\\[5pt]
+\large Finite Laurent Coefficients, Augmented Pfaffians,
+and Compactly Supported Moments}
+\author{Yongcheng Hu\\
+Central South University\\
+\href{mailto:252111040@csu.edu.cn}{\texttt{252111040@csu.edu.cn}}}
+\date{Version of 22 July 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Let $n=2m+1$ and $K=2k+1$, where $a,b,k,m$ are nonnegative
+integers. We give an unconditional proof of the logarithmic Morris
+constant-term identity. The proof uses neither the complex Morris
+constant-term conjecture nor the evaluation of the Dyson integral for
+arbitrary complex parameters.
+
+We first define the constant term involving the formal logarithmic product
+as a linear functional on the finite support of a Laurent polynomial. We
+then compute the Fourier coefficients of the one-variable principal
+logarithm and justify the boundary limit by an explicit uniform
+$L^1$ majorant. The central evaluation of the alternating logarithmic sum
+uses the Pfaffian of an augmented skew-symmetric matrix: a congruence
+transformation of determinant $1$ eliminates all angular variables and
+avoids an informal combinatorial involution. Circularization is performed
+pointwise only on the full-measure open set of pairwise distinct
+coordinates, with integrability proved separately.
+
+In the Dyson specialization $a=b=0$, Good's finite induction gives all
+integer moments of the circular discriminant. We construct a product of
+mutually independent Beta random variables with the same moments. After
+pushing both distributions forward to a common compact interval, the Weierstrass
+approximation theorem yields moment determinacy, allowing the integer
+moment formula to be used at the required half-integer exponent. Finally,
+Laurent Euler derivatives, a finite weight-shift identity for the logarithmic
+weight, and a three-variable permutation invariance after omitting one
+logarithm produce a recurrence in the endpoint parameters. A finite
+Chu--Vandermonde identity and symmetry in $a,b$ complete the proof.
+
+The final section records the interface-level correspondence between the
+mathematical objects used here and their Lean definitions. The project was
+built under \path{leanprover/lean4:v4.28.0}; the final theorem contains no
+\texttt{sorry}, and its axiom report contains only three standard logical
+dependencies of Lean/Mathlib.
+\end{abstract}
+
+\tableofcontents
+
+\section{Main Theorem, Conventions, and the Rank-One Case}
+
+Let $X=(x_1,\ldots,x_n)$ and set
+\[
+  \Delta(X)=\prod_{1\le i<j\le n}(x_i-x_j).
+\]
+Throughout the paper,
+\[
+  n=2m+1,\qquad K=2k+1,\qquad
+  a,b,k,m\in\mathbb Z_{\ge 0}.
+\]
+We use the double-factorial conventions
+\[
+  0!!=1!!=1,\qquad (N+2)!!=(N+2)N!!.
+\]
+Define the finite Laurent polynomial
+\begin{equation}\label{eq:kernel}
+\Phi_{a,b,k}(X)
+=\Delta(X)\prod_{i=1}^{n}x_i^{-m}(1-x_i)^a(1-x_i^{-1})^b
+ \prod_{\substack{1\le i,j\le n\\i\ne j}}
+ \left(1-\frac{x_i}{x_j}\right)^k .
+\end{equation}
+
+\begin{theorem}[Logarithmic Morris constant-term identity]\label{thm:main}
+For the parameters above,
+\begin{align}
+&\CT\!\left[
+ \Phi_{a,b,k}(X)
+ \prod_{q=1}^{m}\log\!\left(1-\frac{x_{2q}}{x_{2q-1}}\right)
+\right]\notag\\
+&\qquad=
+\frac1{n!!}\prod_{i=0}^{n-1}
+\frac{(2a+2b+iK)!!\,((i+1)K)!!}
+{(2a+iK)!!\,(2b+iK)!!\,K!!}.
+\label{eq:main}
+\end{align}
+\end{theorem}
+
+\noindent\textbf{Relation to the original theorem.}
+Theorem~\ref{thm:main} is precisely the assertion of
+\cite[Theorem~1.3]{LogMorris} after writing $n=2m+1$ and $K=2k+1$.
+In contrast to that theorem's original derivation, the present proof does
+not assume the complex Morris constant-term identity
+\cite[(4.5)]{LogMorris}.
+
+\begin{remark}[Meaning of the formal logarithm]\label{rem:formal-log}
+On the left-hand side of \eqref{eq:main}, the logarithm is understood as
+\[
+  \log(1-z)=-\sum_{r\ge1}\frac{z^r}{r}.
+\]
+This does not mean that one first chooses a multivariate formal power
+series ring and then performs an infinite summation. Since
+$\Phi_{a,b,k}$ has finite Laurent support, only finitely many exponents can
+contribute to the constant term. Section~\ref{sec:finite-functional}
+defines it directly as a finite sum.
+\end{remark}
+
+\begin{proof}[The rank-one case $n=1$]
+Here $m=0$, so there are no logarithmic, Vandermonde, or interaction
+factors. Hence the left-hand side is
+\[
+ \CT\bigl[(1-x)^a(1-x^{-1})^b\bigr]
+ =\sum_{r\ge0}\binom ar\binom br
+ =\binom{a+b}{a},
+\]
+where the last equality is the finite Vandermonde convolution. The
+right-hand side has only the term $i=0$ and equals
+\[
+ \frac{(2a+2b)!!}{(2a)!!(2b)!!}
+ =\frac{2^{a+b}(a+b)!}{2^aa!\,2^bb!}
+ =\binom{a+b}{a}.
+\]
+Thus the theorem holds for $n=1$. Unless explicitly stated otherwise, we
+assume henceforth that $m\ge1$, and therefore $n\ge3$.
+\end{proof}
+
+\section{The Finite Logarithmic Constant-Term Functional}
+\label{sec:finite-functional}
+
+Let
+\[
+ F(X)=\sum_{\alpha\in\Z^n}c_\alpha X^\alpha,\qquad
+ X^\alpha=\prod_{i=1}^n x_i^{\alpha_i},
+\]
+where only finitely many $c_\alpha$ are nonzero. Define
+\begin{equation}\label{eq:weight}
+w(\alpha)=
+\begin{cases}
+\displaystyle\prod_{q=1}^{m}\frac{-1}{\alpha_{2q-1}},
+ &\begin{array}{l}
+ \alpha_{2q-1}>0,\quad
+ \alpha_{2q}=-\alpha_{2q-1}\quad(1\le q\le m),\\[-2pt]
+ \alpha_n=0,
+ \end{array}\\[9pt]
+0,&\text{otherwise},
+\end{cases}
+\end{equation}
+and set
+\begin{equation}\label{eq:Lambda}
+ \Lambda(F)=\sum_{\alpha\in\supp(F)}c_\alpha w(\alpha).
+\end{equation}
+
+\begin{lemma}\label{lem:formal-ct}
+For every finite Laurent polynomial $F$,
+\[
+\Lambda(F)=
+\CT\!\left[
+F(X)\prod_{q=1}^{m}
+\log\!\left(1-\frac{x_{2q}}{x_{2q-1}}\right)
+\right].
+\]
+\end{lemma}
+
+\begin{proof}
+The $q$th logarithm contributes precisely the monomials
+\[
+ -\frac{x_{2q}^{r_q}x_{2q-1}^{-r_q}}{r_q},
+ \qquad r_q>0.
+\]
+Its product with $X^\alpha$ has exponent zero in coordinates
+$2q-1,2q$ if and only if
+\[
+ \alpha_{2q-1}=r_q>0,\qquad
+ \alpha_{2q}=-r_q.
+\]
+The unpaired coordinate requires $\alpha_n=0$. Under these conditions
+the coefficient is exactly
+$\prod_q(-1/\alpha_{2q-1})$; otherwise the contribution is zero.
+Because $\supp(F)$ is finite, each $\alpha$ corresponds to at most one
+tuple $(r_1,\ldots,r_m)$. Thus the formal constant term is precisely the
+finite sum \eqref{eq:Lambda}.
+\end{proof}
+
+We henceforth write
+\[
+  L(a,b):=\Lambda(\Phi_{a,b,k}).
+\]
+
+\section{The Fourier Bridge and Finite Coefficient Extraction}
+\label{sec:fourier}
+
+Let $\T=\mathbb R/\mathbb Z$, equipped with normalized Haar measure
+$\dd t$, and write
+\[
+  z(t)=\e^{2\pi i t}.
+\]
+Let $\operatorname{Log}$ denote the principal complex logarithm. To obtain
+an everywhere-defined measurable function, put
+\[
+\Logc(\zeta)=
+\begin{cases}
+\operatorname{Log}(\zeta),&\zeta\ne0,\\
+0,&\zeta=0.
+\end{cases}
+\]
+The value at zero does not change any integral; it also agrees with the
+total-function convention used by Lean's \texttt{Complex.log}. Set
+\[
+  \ell(t)=\Logc(1-z(t)).
+\]
+
+\begin{lemma}[$L^1$ integrability and Fourier coefficients]
+\label{lem:fourier}
+The function $\ell$ belongs to $L^1(\T)$ and, for every $q\in\Z$,
+\begin{equation}\label{eq:fourier}
+\int_\T z(t)^q\ell(t)\dd t=
+\begin{cases}
+1/q,&q<0,\\
+0,&q\ge0.
+\end{cases}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+We first prove integrability. For $t\ne0$,
+\[
+ |1-\e^{2\pi it}|=2|\sin(\pi t)|.
+\]
+In a representative neighborhood of $t=0$, the quantities
+$|\sin(\pi t)|$ and $|t|$ are comparable. Consequently,
+\[
+ |\ell(t)|\le C+|\log|t||.
+\]
+Since $\int_0^\varepsilon|\log t|\dd t<\infty$, while $\ell$ is
+continuous and bounded away from $0$, this proves $\ell\in L^1(\T)$.
+
+For $0\le r<1$, let
+\[
+  \ell_r(t)=\operatorname{Log}(1-rz(t)).
+\]
+The absolutely convergent expansion inside the unit disk gives
+\[
+  \ell_r(t)=-\sum_{j\ge1}\frac{r^jz(t)^j}{j}.
+\]
+Termwise integration and character orthogonality yield
+\begin{equation}\label{eq:radial-fourier}
+\int_\T z(t)^q\ell_r(t)\dd t=
+\begin{cases}
+-r^{-q}/(-q),&q<0,\\
+0,&q\ge0.
+\end{cases}
+\end{equation}
+
+It remains to justify the limit $r\uparrow1$. Fix $t\ne0$ and set
+\[
+ d=|1-z(t)|,\qquad u=|1-rz(t)|.
+\]
+The reverse triangle inequality gives $1-r\le u$, and
+\[
+ d\le |1-rz(t)|+|(r-1)z(t)|\le2u,
+\qquad u\le1+r\le2.
+\]
+Hence
+\[
+ |\log u|\le\log2+|\log d|.
+\]
+The absolute value of the principal argument is at most $\pi$, so
+\begin{equation}\label{eq:domination}
+|\ell_r(t)|
+\le |\log u|+\pi
+\le \log2+|\ell(t)|+\pi.
+\end{equation}
+The right-hand side belongs to $L^1(\T)$ and is independent of $r$.
+Moreover, $\ell_r(t)\to\ell(t)$ away from zero. Dominated convergence
+together with \eqref{eq:radial-fourier} now gives \eqref{eq:fourier}.
+\end{proof}
+
+\begin{lemma}[Two-variable Fourier coefficient]\label{lem:pair-fourier}
+For $p,q\in\Z$,
+\begin{equation}\label{eq:pair-fourier}
+\int_{\T^2}z(u)^pz(v)^q
+\Logc\!\left(1-\frac{z(v)}{z(u)}\right)\dd u\dd v
+=
+\begin{cases}
+-1/p,&p>0,\ q=-p,\\
+0,&\text{otherwise}.
+\end{cases}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Apply the Haar-measure-preserving shear
+$(u,s)\mapsto(u,u+s)$. The integrand becomes
+\[
+ z(u)^{p+q}\,z(s)^q\ell(s).
+\]
+Fubini's theorem separates the two variables. The first integral forces
+$p+q=0$, while the second is evaluated by Lemma~\ref{lem:fourier}.
+When $q=-p$, it is nonzero precisely for $p>0$, and its value is
+$1/q=-1/p$.
+\end{proof}
+
+\begin{proposition}[Finite-coefficient circular-integral bridge]
+\label{prop:bridge}
+Define
+\[
+ \mathcal L(t)=\prod_{q=1}^{m}
+ \Logc\!\left(1-\frac{z(t_{2q})}{z(t_{2q-1})}\right).
+\]
+Then, for every finite Laurent polynomial $F$,
+\begin{equation}\label{eq:bridge}
+ \Lambda(F)=\int_{\T^n}F(z(t_1),\ldots,z(t_n))
+ \mathcal L(t)\dd t.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The pairs of variables are disjoint. Put
+\[
+ f_q(t_{2q-1},t_{2q})
+ =\Logc\!\left(1-\frac{z(t_{2q})}{z(t_{2q-1})}\right).
+\]
+Lemma~\ref{lem:fourier} and the measure-preserving shear show that each
+$f_q\in L^1(\T^2)$. By Tonelli's theorem and the disjointness of the
+variable blocks,
+\[
+ \int_{\T^{2m}}\prod_{q=1}^m|f_q|
+ =\prod_{q=1}^m\int_{\T^2}|f_q|<\infty.
+\]
+The unpaired coordinate contributes the factor $1$, so
+$\mathcal L\in L^1(\T^n)$; Fubini's theorem may therefore be used to
+separate the variable blocks. Since a Laurent polynomial is bounded on
+the compact torus, the integrand in \eqref{eq:bridge} is integrable.
+
+First take $F=X^\alpha$. Apply \eqref{eq:pair-fourier} to each pair and
+character orthogonality to the unpaired variable. The integral is nonzero
+exactly under the admissibility conditions in \eqref{eq:weight}, and its
+value is $w(\alpha)$. The general case follows by finite linearity.
+\end{proof}
+
+\section{Augmented Pfaffians and Circularization}
+\label{sec:circularization}
+
+For an arbitrary $n\times n$ matrix $A=(A_{ij})$, define
+\begin{equation}\label{eq:alt}
+\Alt_m(A)=\sum_{\sigma\in S_n}\sgn(\sigma)
+\prod_{q=1}^{m}A_{\sigma(2q-1),\sigma(2q)}.
+\end{equation}
+For $c,y_1,\ldots,y_n\in\C$, define the skew-symmetric matrix
+\begin{equation}\label{eq:saw}
+S_{ij}(c,y)=
+\begin{cases}
+y_j-y_i+c,&i<j,\\
+-(y_i-y_j+c),&j<i,\\
+0,&i=j.
+\end{cases}
+\end{equation}
+
+\begin{lemma}[Augmented sawtooth Pfaffian]\label{lem:saw}
+If $n=2m+1$, then
+\begin{equation}\label{eq:saw-eval}
+ \Alt_m(S(c,y))=2^m m!c^m.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Introduce the index $N=n+1=2m+2$ and define the $N\times N$
+skew-symmetric matrix $B$ by
+\[
+ B_{ij}=S_{ij}(c,y)\quad(1\le i,j\le n),\qquad
+ B_{iN}=1,\quad B_{Ni}=-1.
+\]
+Every Pfaffian principal submatrix below is ordered by the inherited
+natural order of its indices, and we set $\Pf(\varnothing)=1$. We use the
+standard convention
+\[
+\Pf(B)=\frac1{2^{m+1}(m+1)!}
+\sum_{\tau\in S_N}\sgn(\tau)
+\prod_{r=1}^{m+1}B_{\tau(2r-1),\tau(2r)}.
+\]
+Group \eqref{eq:alt} according to the unpaired vertex
+$u=\sigma(n)$. Moving $u$ from its $u$th position in the natural order
+to the last position requires $n-u$ adjacent transpositions. Since $n$
+is odd,
+\[
+(-1)^{n-u}=(-1)^{u+1}.
+\]
+For fixed $u$, the sum over oriented, ordered pairings of the remaining
+$2m$ vertices is
+$2^m m!\Pf(B_{\widehat u,\widehat N})$, where
+$B_{\widehat u,\widehat N}$ denotes the principal submatrix obtained by
+deleting rows and columns $u,N$. Therefore
+\[
+\Alt_m(S)=2^m m!\sum_{u=1}^{n}
+(-1)^{u+1}\Pf(B_{\widehat u,\widehat N}).
+\]
+On the other hand, expansion of the augmented matrix $B$ along its last
+row and column, using $B_{uN}=1$, gives
+\[
+\Pf(B)=\sum_{u=1}^{n}(-1)^{u+1}
+\Pf(B_{\widehat u,\widehat N}).
+\]
+The signs agree term by term, so
+\begin{equation}\label{eq:alt-pf}
+ \Alt_m(S)=2^m m!\Pf(B).
+\end{equation}
+
+Regard $B$ as its associated alternating bilinear form. Let
+$e_1,\ldots,e_N$ be the standard basis and make the change of basis
+\[
+ f_i=e_i-y_i e_N\quad(1\le i\le n),\qquad f_N=e_N.
+\]
+Its transition matrix is unitriangular and has determinant $1$. The
+Pfaffian congruence formula
+\[
+ \Pf(P^{\mathsf T}BP)=\det(P)\Pf(B)
+\]
+therefore leaves the Pfaffian unchanged. Standard conventions for
+Pfaffian expansion and congruence may be found in \cite{Knuth1996}.
+For $i<j\le n$, a direct calculation gives
+\[
+\begin{aligned}
+B(f_i,f_j)
+&=B(e_i,e_j)-y_jB(e_i,e_N)-y_iB(e_N,e_j)\\
+&=(y_j-y_i+c)-y_j+y_i=c,
+\end{aligned}
+\]
+and $B(f_i,f_N)=1$. Thus the strictly upper-triangular part of the new
+matrix $C$ satisfies
+\[
+ C_{ij}=c\quad(1\le i<j\le n),\qquad C_{iN}=1.
+\]
+Every perfect matching contains exactly one edge incident to $N$; the
+remaining $m$ edges lie among the first $n$ vertices. Consequently every
+Pfaffian term contains the factor $c^m$, and
+\[
+ \Pf(C)=c^m\Pf(J_N),
+\]
+where $J_N$ is the skew-symmetric matrix whose strictly upper-triangular
+entries are all $1$.
+
+Finally, we show that $\Pf(J_{2r})=1$. For $r=0$, this is precisely the
+empty-Pfaffian convention. Expanding along the first row and using the
+induction hypothesis,
+\[
+ \Pf(J_{2r})
+ =\sum_{j=2}^{2r}(-1)^j\Pf(J_{2r-2})
+ =\sum_{j=2}^{2r}(-1)^j=1.
+\]
+Hence $\Pf(B)=\Pf(C)=c^m$. Substitution into \eqref{eq:alt-pf} proves
+\eqref{eq:saw-eval}.
+\end{proof}
+
+Define the circular kernel
+\begin{equation}\label{eq:circular-kernel}
+\mathcal C_{a,b,K}(t)=
+\prod_{i=1}^{n}(1-z(t_i))^a(1-z(t_i)^{-1})^b
+\prod_{1\le i<j\le n}|z(t_i)-z(t_j)|^K.
+\end{equation}
+When $a\ne b$, it is generally complex-valued; for this reason we call it
+a circular kernel rather than a density.
+
+\begin{lemma}[The alternating logarithmic sum in an ordered chamber]
+\label{lem:ordered-alt}
+Suppose
+\[
+ 0\le\theta_1<\cdots<\theta_n<2\pi,\qquad z_j=\e^{i\theta_j},
+\]
+and put
+\[
+ A_{ij}=\Logc(1-z_j/z_i)\qquad(1\le i,j\le n).
+\]
+In particular, the total-function convention of
+Section~\ref{sec:fourier} gives $A_{ii}=\Logc(0)=0$. Then
+\begin{equation}\label{eq:log-alt}
+ \Alt_m(A)=m!(-\pi i)^m.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+For $i<j$, let
+\[
+ \delta=\theta_j-\theta_i\in(0,2\pi).
+\]
+We have
+\[
+\begin{aligned}
+1-\e^{i\delta}
+ &=2\sin\frac{\delta}{2}\,
+   \e^{\,i(\delta/2-\pi/2)},\\
+1-\e^{-i\delta}
+ &=2\sin\frac{\delta}{2}\,
+   \e^{\,i(\pi/2-\delta/2)}.
+\end{aligned}
+\]
+Both displayed arguments lie in $(-\pi,\pi)$, so the principal branch
+gives
+\[
+ \operatorname{Log}(1-\e^{i\delta})
+ -\operatorname{Log}(1-\e^{-i\delta})
+ =i(\delta-\pi).
+\]
+Both arguments of the logarithms are nonzero, so $\Logc$ agrees here
+with the principal logarithm. Therefore
+\begin{equation}\label{eq:log-skew}
+ A_{ij}-A_{ji}=i(\theta_j-\theta_i-\pi).
+\end{equation}
+Independently swapping the two positions in every input pair of
+\eqref{eq:alt} gives
+\[
+ \Alt_m(A-A^{\mathsf T})=2^m\Alt_m(A).
+\]
+By \eqref{eq:log-skew},
+\[
+A-A^{\mathsf T}=S(-\pi i,(i\theta_j)_j).
+\]
+Lemma~\ref{lem:saw}, followed by cancellation of $2^m$, proves
+\eqref{eq:log-alt}.
+\end{proof}
+
+\begin{lemma}[The phase in an ordered chamber]\label{lem:ordered-phase}
+In the ordered chamber of Lemma~\ref{lem:ordered-alt},
+\begin{equation}\label{eq:kernel-phase}
+ \Phi_{a,b,k}(z_1,\ldots,z_n)
+ =(-i)^{mn}\mathcal C_{a,b,K}(t).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+For each $i<j$,
+\[
+\left(1-\frac{x_i}{x_j}\right)^k
+\left(1-\frac{x_j}{x_i}\right)^k
+=(-1)^k\frac{(x_i-x_j)^{2k}}{(x_ix_j)^k}.
+\]
+Hence
+\begin{equation}\label{eq:normalized-kernel}
+\Phi_{a,b,k}
+=\varepsilon\,\Delta^K
+\prod_{i=1}^{n}x_i^{-(b+mK)}(1-x_i)^{a+b},
+\qquad
+\varepsilon=(-1)^{k\binom n2+bn}.
+\end{equation}
+In the ordered chamber, for every pair we use
+\[
+ z_i-z_j=(-i)\e^{i(\theta_i+\theta_j)/2}|z_i-z_j|.
+\]
+In the midpoint phase of $\Delta^K$, each $z_i$ occurs
+$n-1=2m$ times, exactly cancelling $z_i^{-mK}$. Rewriting
+$(1-z_i)^{a+b}z_i^{-b}$ as
+$(-1)^b(1-z_i)^a(1-z_i^{-1})^b$, and setting
+$C=\binom n2$, we find that the endpoint factors contribute
+$(-1)^{bn}$ and the pairwise decomposition of $\Delta^K$ contributes
+$(-i)^{KC}$. Together with $\varepsilon$ from
+\eqref{eq:normalized-kernel}, the total phase is
+\[
+\begin{aligned}
+\varepsilon(-1)^{bn}(-i)^{KC}
+ &=(-1)^{kC}(-i)^{KC}\\
+ &=(-i)^{2kC}(-i)^{(2k+1)C}\\
+ &=(-i)^{(4k+1)C}\\
+ &=(-i)^C.
+\end{aligned}
+\]
+Since $C=\binom n2=mn$, this is $(-i)^{mn}$, proving
+\eqref{eq:kernel-phase}.
+\end{proof}
+
+\begin{proposition}[Circularization formula]\label{prop:circularization}
+For all $a,b,k,m\in\mathbb Z_{\ge0}$,
+\begin{equation}\label{eq:circularization}
+ L(a,b)=\frac{m!\pi^m}{n!}
+ \int_{\T^n}\mathcal C_{a,b,K}(t)\dd t.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+For $\sigma\in S_n$ and $t\in\T^n$, fix the convention
+\[
+ (\sigma t)_j:=t_{\sigma(j)}\qquad(1\le j\le n).
+\]
+By Proposition~\ref{prop:bridge}, $L(a,b)$ is the integral of
+$\Phi(z(t))\mathcal L(t)$. The Laurent kernel is bounded on the compact
+torus, and $\mathcal L$ is integrable; hence their product is integrable.
+Define
+\[
+\mathcal A(t)=\sum_{\sigma\in S_n}\sgn(\sigma)\,
+\mathcal L(\sigma t).
+\]
+Changes of variables by permutations preserve Haar measure. Since
+$\Phi$ is alternating, every
+$\Phi(t)\mathcal L(\sigma t)$ is integrable, and the finite alternating
+sum may be integrated term by term:
+\begin{equation}\label{eq:average}
+n!\int_{\T^n}\Phi(z(t))\mathcal L(t)\dd t
+=\int_{\T^n}\Phi(z(t))\mathcal A(t)\dd t.
+\end{equation}
+
+In any ordered chamber, let
+\[
+ A_{ij}=\Logc\!\left(1-\frac{z(t_j)}{z(t_i)}\right).
+\]
+Termwise comparison of the definitions of $\mathcal L$, $\mathcal A$,
+and \eqref{eq:alt} gives
+\begin{equation}\label{eq:A-is-alt}
+ \mathcal A(t)=\Alt_m(A).
+\end{equation}
+This is the precise interface between alternation under the integral and
+Lemma~\ref{lem:ordered-alt}.
+
+Let $U\subset\T^n$ be the set of tuples with pairwise distinct
+coordinates. Its complement is a finite union of diagonal sets
+$\{t_i=t_j\}$, each of Haar measure zero, so $U$ has full measure. For
+$t\in U$, choose the unique representative
+$\theta_i\in[0,2\pi)$ of each $t_i\in\T=\mathbb R/\mathbb Z$, with
+$t_i=\theta_i/(2\pi)$, and then the unique sorting permutation $\rho$
+for which the representatives of
+$(\rho t)_1,\ldots,(\rho t)_n$ are strictly increasing. By the convention
+above and by alternation,
+\[
+\Phi(\rho t)=\sgn(\rho)\Phi(t),\qquad
+\mathcal A(\rho t)=\sgn(\rho)\mathcal A(t),
+\]
+whereas
+$\mathcal C_{a,b,K}(\rho t)=\mathcal C_{a,b,K}(t)$. Thus
+$\Phi\mathcal A$ is permutation-invariant, and
+Lemmas~\ref{lem:ordered-alt} and \ref{lem:ordered-phase} apply in the
+sorted chamber. Since
+\[
+(-i)^{mn}(-i)^m=(-i)^{m(n+1)}=1
+\]
+and $m(n+1)=2m(m+1)$ is divisible by $4$, we obtain on $U$
+\[
+ \Phi(z(t))\mathcal A(t)=m!\pi^m\mathcal C_{a,b,K}(t).
+\]
+The function $\mathcal C_{a,b,K}$ is Borel measurable, since it is a
+finite product of continuous functions on $\T^n$.
+This is an almost-everywhere identity; no meaningless product
+$0\cdot\infty$ is asserted at collision points. The left-hand side is
+integrable, so the right-hand side is integrable as well. Substitution
+into \eqref{eq:average}, followed by Proposition~\ref{prop:bridge},
+gives \eqref{eq:circularization}.
+\end{proof}
+
+\begin{corollary}[Exchange of endpoint parameters]\label{cor:swap}
+\[
+ L(a,b)=L(b,a).
+\]
+\end{corollary}
+
+\begin{proof}
+In \eqref{eq:circularization}, make the Haar-measure-preserving change of
+variables $t\mapsto-t$. Then $z_i\mapsto z_i^{-1}$, the absolute
+Vandermonde factor is unchanged, and the two endpoint factors are
+interchanged.
+\end{proof}
+
+\section{An Unconditional Evaluation in the Dyson Specialization}
+\label{sec:dyson}
+
+In this section set $a=b=0$ and define
+\begin{equation}\label{eq:Y}
+Y(t)=\prod_{1\le i<j\le n}|z(t_i)-z(t_j)|^2.
+\end{equation}
+Then $\mathcal C_{0,0,K}(t)=Y(t)^{K/2}$. We begin only with the finite
+Dyson identity at nonnegative integer exponents; no evaluation at general
+complex parameters is assumed.
+
+\subsection{Good's Finite Dyson Identity}
+
+For a finite index set $I$ and
+$\bm a=(a_i)_{i\in I}\in\mathbb Z_{\ge0}^{\,I}$, put
+\[
+ R_i(X)=\prod_{\substack{j\in I\\j\ne i}}
+ \left(1-\frac{x_i}{x_j}\right),\qquad
+ D_{I,\bm a}(X)=\prod_{i\in I}R_i(X)^{a_i}.
+\]
+
+\begin{proposition}[Good--Dyson]\label{prop:good}
+\begin{equation}\label{eq:good}
+ \CT[D_{I,\bm a}]
+ =\frac{\left(\sum_{i\in I}a_i\right)!}{\prod_{i\in I}a_i!}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+If $I=\varnothing$, both sides are $1$. Assume henceforth that
+$I\ne\varnothing$ and regard the $x_i$ as algebraically independent.
+The sum of the Lagrange basis polynomials evaluated at $0$ gives, first
+in the rational function field $\Q(x_i\mid i\in I)$,
+\[
+ 1=\sum_{i\in I}\frac1{R_i}.
+\]
+Clearing the denominator $\prod_{i\in I}R_i$ turns this into the Laurent
+polynomial identity
+\[
+ \prod_{i\in I}R_i
+ =\sum_{i\in I}\prod_{\substack{j\in I\\j\ne i}}R_j.
+\]
+If every $a_i>0$, multiplication by $\prod_iR_i^{a_i-1}$ yields
+\begin{equation}\label{eq:good-rec}
+ D_{I,\bm a}=\sum_{i\in I}D_{I,\bm a-\bm e_i}.
+\end{equation}
+If $a_h=0$, then
+\[
+D_{I,\bm a}
+=D_{I\setminus\{h\},\,\bm a|_{I\setminus\{h\}}}
+\prod_{i\in I\setminus\{h\}}
+\left(1-\frac{x_i}{x_h}\right)^{a_i}.
+\]
+The first factor is independent of $x_h$, while the second contains only
+nonpositive powers of $x_h$ and has constant term $1$ in $x_h$. Hence
+\begin{equation}\label{eq:good-boundary}
+\CT[D_{I,\bm a}]
+=\CT[D_{I\setminus\{h\},\,\bm a|_{I\setminus\{h\}}}].
+\end{equation}
+
+The candidate
+\[
+G(I,\bm a)=\frac{(\sum_i a_i)!}{\prod_i a_i!}
+\]
+satisfies the same recurrence and boundary relation. Indeed, if every
+$a_i>0$ and $A=\sum_i a_i$, then
+\[
+\sum_iG(I,\bm a-\bm e_i)
+=G(I,\bm a)\sum_i\frac{a_i}{A}=G(I,\bm a).
+\]
+If $a_h=0$, then $0!=1$ gives directly
+\[
+ G(I,\bm a)
+ =G(I\setminus\{h\},\,\bm a|_{I\setminus\{h\}}).
+\]
+Strong induction on $\sum_i a_i+|I|$, starting from the empty index set,
+proves \eqref{eq:good}.
+\end{proof}
+
+Take $I=\{1,\ldots,n\}$ and $a_i=q$. On the unit circle,
+\[
+\prod_{i\ne j}\left(1-\frac{z_i}{z_j}\right)^q=Y(t)^q.
+\]
+The torus integral of a finite Laurent polynomial is its constant term,
+so
+\begin{equation}\label{eq:Y-integer-moments}
+\int_{\T^n}Y(t)^q\dd t=\frac{(nq)!}{(q!)^n}
+\qquad(q\in\mathbb Z_{\ge0}).
+\end{equation}
+
+\subsection{A Beta Product and the Gauss Multiplication Formula}
+
+For the moment assume $n\ge2$. Let $B_1,\ldots,B_{n-1}$ be mutually
+independent random variables with
+\[
+B_r\sim\operatorname{Beta}\left(\frac rn,1-\frac rn\right)
+\qquad(1\le r\le n-1),
+\]
+and set
+\begin{equation}\label{eq:Z}
+ Z=n^n\prod_{r=1}^{n-1}B_r.
+\end{equation}
+
+\begin{lemma}[Mellin transform of the Beta product]
+\label{lem:beta-mellin}
+Assume $n\ge2$. For every $s\ge0$,
+\begin{equation}\label{eq:Z-mellin}
+\E[Z^s]=\frac{\Gamma(1+ns)}{\Gamma(1+s)^n}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The Beta integral, independence, and
+$B(x,y)=\Gamma(x)\Gamma(y)/\Gamma(x+y)$ give
+\begin{align}
+\E[Z^s]
+&=n^{ns}\prod_{r=1}^{n-1}
+\frac{B(s+r/n,1-r/n)}{B(r/n,1-r/n)}\notag\\
+&=\frac{n^{ns}}{\Gamma(1+s)^{n-1}}
+\prod_{r=1}^{n-1}
+\frac{\Gamma(s+r/n)}{\Gamma(r/n)}.
+\label{eq:beta-before-gauss}
+\end{align}
+For completeness, we do not invoke the Gauss formula as an unexplained
+black box. For $x>0$, define
+\[
+G_n(x)=n^{x-1}
+\frac{\prod_{r=0}^{n-1}\Gamma((x+r)/n)}
+{\prod_{r=0}^{n-1}\Gamma((1+r)/n)}.
+\]
+Using $\Gamma(u+1)=u\Gamma(u)$ and cancelling consecutive factors gives
+\[
+ G_n(x+1)=xG_n(x),\qquad G_n(1)=1.
+\]
+Clearly $G_n(x)>0$, and
+\[
+\log G_n(x)
+=(x-1)\log n+\sum_{r=0}^{n-1}\log\Gamma((x+r)/n)-\text{constant}
+\]
+is convex. The Bohr--Mollerup uniqueness theorem
+\cite[pp.~34--36]{Andrews1999} therefore yields
+$G_n(x)=\Gamma(x)$, or equivalently the normalized Gauss formula
+\begin{equation}\label{eq:gauss-normalized}
+\frac{\prod_{r=0}^{n-1}\Gamma((x+r)/n)}
+{\prod_{r=0}^{n-1}\Gamma((1+r)/n)}
+=n^{1-x}\Gamma(x).
+\end{equation}
+Set $x=1+ns$ in \eqref{eq:gauss-normalized} and reindex the numerator
+and denominator products by $r=1,\ldots,n$. Isolating the factor
+$\Gamma(1+s)/\Gamma(1)$ corresponding to $r=n$ then gives
+\[
+n^{ns}\prod_{r=1}^{n-1}
+\frac{\Gamma(s+r/n)}{\Gamma(r/n)}
+=\frac{\Gamma(1+ns)}{\Gamma(1+s)}.
+\]
+Substitution into \eqref{eq:beta-before-gauss} proves
+\eqref{eq:Z-mellin}.
+\end{proof}
+
+\subsection{Pushforward Measures and Moment Determinacy on a Compact Interval}
+
+\begin{lemma}[Moment determinacy on a compact interval]
+\label{lem:moment-unique}
+Let $\mu,\nu$ be probability measures on the same compact interval
+$[0,C]$. If
+\[
+ \int_0^C x^q\dd\mu(x)=\int_0^C x^q\dd\nu(x)
+ \qquad(q\in\mathbb Z_{\ge0}),
+\]
+then, for every $f\in C([0,C])$,
+\[
+ \int_0^C f\dd\mu=\int_0^C f\dd\nu.
+\]
+\end{lemma}
+
+\begin{proof}
+Equality of the moments implies by linearity that the integrals of all
+polynomials agree. Given $f\in C([0,C])$ and $\varepsilon>0$, the
+Weierstrass approximation theorem \cite{Rudin1976} provides a polynomial
+$p$ such that $\|f-p\|_\infty<\varepsilon$. Since both probability
+measures have total mass $1$,
+\[
+\left|\int(f-p)\dd\mu\right|\le\varepsilon,\qquad
+\left|\int(f-p)\dd\nu\right|\le\varepsilon.
+\]
+The integrals of $p$ agree; letting $\varepsilon\downarrow0$ proves the
+claim.
+\end{proof}
+
+\begin{proposition}[The circular Dyson integral at real parameters]
+\label{prop:dyson-real}
+Assume $n\ge2$. For $s\ge0$,
+\begin{equation}\label{eq:dyson-real}
+\int_{\T^n}Y(t)^s\dd t
+=\frac{\Gamma(1+ns)}{\Gamma(1+s)^n}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The pairwise estimate $|z_i-z_j|\le2$ gives
+\[
+ 0\le Y\le4^{\binom n2}.
+\]
+Since $0\le B_r\le1$, we also have $0\le Z\le n^n$. Put
+\[
+C=4^{\binom n2}+n^n
+\,.
+\]
+Let $\dd t^{\otimes n}$ denote the normalized product Haar probability
+measure on $\T^n$, and let $\mathbb P$ be the probability measure
+governing the mutually independent variables $B_1,\ldots,B_{n-1}$.
+Define on $[0,C]$ the pushforward probability measures
+\[
+\mu=Y_*(\dd t^{\otimes n}),\qquad
+\nu=Z_*(\dd\mathbb P).
+\]
+For every integer $q\ge0$, \eqref{eq:Y-integer-moments} and
+Lemma~\ref{lem:beta-mellin} give
+\[
+\int x^q\dd\mu
+=\frac{(nq)!}{(q!)^n}
+=\int x^q\dd\nu.
+\]
+For $s>0$, Lemma~\ref{lem:moment-unique} applies to the continuous
+function $f(x)=x^s$; for $s=0$, take $f\equiv1$. Therefore
+\[
+\int_{\T^n}Y(t)^s\dd t=\E[Z^s].
+\]
+Equation \eqref{eq:Z-mellin} now proves \eqref{eq:dyson-real}.
+\end{proof}
+
+\subsection{The Dyson Base Case}
+
+Set $s=K/2=k+1/2$. Propositions~\ref{prop:circularization} and
+\ref{prop:dyson-real} give
+\begin{equation}\label{eq:base-gamma}
+L(0,0)=\frac{m!\pi^m}{n!}
+\frac{\Gamma(1+nK/2)}{\Gamma(1+K/2)^n}.
+\end{equation}
+Since both $n$ and $K$ are odd,
+\[
+\Gamma\left(1+\frac r2\right)
+=\frac{r!!\sqrt\pi}{2^{(r+1)/2}}
+\qquad(r\ \text{odd}),
+\]
+and hence
+\[
+\frac{\Gamma(1+nK/2)}{\Gamma(1+K/2)^n}
+=\frac{2^m}{\pi^m}\frac{(nK)!!}{(K!!)^{n}}.
+\]
+Moreover,
+$n!=n!!(2m)!!=n!!\,2^m m!$, so
+\begin{equation}\label{eq:base}
+ L(0,0)=\frac1{n!!}\frac{(nK)!!}{(K!!)^{n}}.
+\end{equation}
+At $a=b=0$, the right-hand side of Theorem~\ref{thm:main} telescopes:
+\[
+\frac1{n!!}\prod_{i=0}^{n-1}
+\frac{((i+1)K)!!}{(iK)!!K!!}
+=\frac1{n!!}\frac{(nK)!!}{(K!!)^{n}}.
+\]
+Thus the base case has been established unconditionally.
+
+\section{The Laurent--Euler Recurrence in the Endpoint Parameters}\label{sec:shift}
+
+Set
+\begin{equation}\label{eq:Er}
+E_r(X)=\sum_{\substack{T\subseteq\{1,\ldots,n\}\\|T|=r}}
+\prod_{j\in T}(-x_j)=(-1)^re_r(X),
+\end{equation}
+and define
+\[
+H_r(a,b)=\Lambda(\Phi_{a,b,k}E_r),\qquad 0\le r\le n.
+\]
+In particular, $H_0(a,b)=L(a,b)$.  To treat boundary indices
+uniformly, for $J\subseteq\{1,\ldots,n\}$ and $s\in\mathbb Z$ define
+\[
+E_s^{(J)}=
+\sum_{\substack{T\subseteq\{1,\ldots,n\}\setminus J\\|T|=s}}
+\prod_{j\in T}(-x_j),
+\]
+with the convention that $E_s^{(J)}=0$ when $s<0$ or
+$s>n-|J|$.  We abbreviate
+$E_s^{(i)}=E_s^{(\{i\})}$ and
+$E_s^{(i,j)}=E_s^{(\{i,j\})}$.  For a fixed $i$, put
+\[
+P_{r,i}=(1-x_i)E_r^{(i)},\qquad
+D_i=x_i\frac{\partial}{\partial x_i}.
+\]
+
+\subsection{A Laurent-Polynomial Identity}
+
+\begin{lemma}[Local shift identity]\label{lem:local-shift}
+If $0\le r<n$, then
+\begin{align}
+2\sum_{i=1}^{n}D_i(P_{r,i}\Phi_{a,b,k})
+={}&-(n-r)(2b+rK)\Phi_{a,b,k}E_r\notag\\
+&+(r+1)\bigl(2a+2+(n-r-1)K\bigr)
+\Phi_{a,b,k}E_{r+1}.
+\label{eq:local-shift}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+We first establish the intermediate identities used below.  Elementary
+counting of finite subsets gives
+\begin{equation}\label{eq:subset-count}
+\sum_iE_r^{(i)}=(n-r)E_r,\qquad
+\sum_i(-x_i)E_r^{(i)}=(r+1)E_{r+1}.
+\end{equation}
+For $i\ne j$, define
+\[
+Q_{r,ij}=(1-x_i-x_j)E_r^{(i,j)}
++x_ix_jE_{r-1}^{(i,j)}.
+\]
+Decomposing subsets according to whether they contain $i$ and $j$
+immediately yields
+\begin{equation}\label{eq:P-difference}
+x_iP_{r,i}-x_jP_{r,j}=(x_i-x_j)Q_{r,ij}.
+\end{equation}
+We next count the multiplicity of each fixed monomial.  A given
+$r$-element subset occurring in $E_r$ appears in $E_r^{(i,j)}$
+$\binom{n-r}{2}$ times.  A given $(r+1)$-element subset occurring in
+$E_{r+1}$ appears $(r+1)(n-r-1)$ times in
+$-x_iE_r^{(i,j)}-x_jE_r^{(i,j)}$ and $\binom{r+1}{2}$ times in
+$x_ix_jE_{r-1}^{(i,j)}$.  Therefore
+\begin{align}
+2\sum_{i<j}Q_{r,ij}
+={}&(n-r-1)(n-r)E_r\notag\\
+&+(r+1)\bigl(2(n-r-1)+r\bigr)E_{r+1}.
+\label{eq:Q-count}
+\end{align}
+
+For integers $d,t,q\ge0$, set
+\[
+\Psi_{d,t,q}=\Delta^{q+1}\prod_i x_i^{-d}(1-x_i)^t.
+\]
+In the field of Laurent rational functions,
+\[
+\frac{D_i\Psi_{d,t,q}}{\Psi_{d,t,q}}
+=-d-\frac{t x_i}{1-x_i}
++(q+1)\sum_{j\ne i}\frac{x_i}{x_i-x_j}.
+\]
+Since $D_iP_{r,i}=-x_iE_r^{(i)}$, the Leibniz rule and
+\eqref{eq:subset-count} show that the endpoint contribution is
+\[
+-2d(n-r)\Psi E_r
++2(r+1)(t+1-d)\Psi E_{r+1}.
+\]
+Combining the Vandermonde contribution in unordered pairs and applying
+\eqref{eq:P-difference}, we obtain
+\[
+\begin{aligned}
+2(q+1)\Psi\sum_{i<j}
+\frac{x_iP_{r,i}-x_jP_{r,j}}{x_i-x_j}
+&=2(q+1)\Psi\sum_{i<j}Q_{r,ij}.
+\end{aligned}
+\]
+Substitution of \eqref{eq:Q-count} now gives
+\begin{align}
+2\sum_iD_i(P_{r,i}\Psi_{d,t,q})
+={}&\bigl[-2d(n-r)+(q+1)(n-r-1)(n-r)\bigr]\Psi E_r
+\notag\\
+&+\bigl[2(r+1)(t+1-d)\notag\\
+&\qquad +(q+1)(r+1)(2(n-r-1)+r)\bigr]\Psi E_{r+1}.
+\label{eq:general-euler}
+\end{align}
+The calculation was performed in the field of Laurent rational
+functions.  Nevertheless, the left-hand side of
+\eqref{eq:general-euler} is a sum of Euler derivatives of Laurent
+polynomials, while $\Psi E_r$ and $\Psi E_{r+1}$ on the right-hand
+side are Laurent polynomials.  Thus \eqref{eq:general-euler} is also
+an identity in the Laurent-polynomial ring: all formal denominators
+$1-x_i$ and $x_i-x_j$ have disappeared from the final expression.
+
+Finally use the normalized formula \eqref{eq:normalized-kernel}, that
+is, substitute
+\[
+d=b+mK,\qquad t=a+b,\qquad q+1=K,\qquad n=2m+1.
+\]
+The coefficient of $E_r$ simplifies to
+$-(n-r)(2b+rK)$, and that of $E_{r+1}$ to
+$(r+1)(2a+2+(n-r-1)K)$.  The constant $\varepsilon$ is unaffected by
+Euler differentiation, proving \eqref{eq:local-shift}.
+\end{proof}
+
+\subsection{Finite Logarithmic Weight Shifts: All Exponent Branches}
+
+Fix the $q$th logarithmic pair
+\[
+u=2q-1,\qquad v=2q,
+\]
+and let $w^{[q]}$ be the weight obtained by deleting this logarithmic
+pair.  Thus it requires
+\[
+\alpha_u=\alpha_v=0,\qquad \alpha_n=0,
+\]
+each remaining pair must still satisfy \eqref{eq:weight}, and its
+weight is the product of the remaining $m-1$ factors.  Denote the
+corresponding finite functional by $\Lambda^{[q]}$.
+
+\begin{lemma}[Weight-shift identity]\label{lem:weight-scale}
+If $\alpha'=\alpha+\bm e_u-\bm e_v$, then, for every
+$\alpha\in\mathbb Z^n$,
+\begin{equation}\label{eq:weight-scale}
+\alpha_u w(\alpha)-(\alpha_u+1)w(\alpha')
+=w^{[q]}(\alpha).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+First suppose that all pairs other than $(u,v)$ and the unpaired
+coordinate satisfy their respective conditions, and write $W$ for the
+product of their weights.
+
+If $\alpha_u=p>0$ and $\alpha_v=-p$, then
+\[
+w(\alpha)=-W/p,\qquad w(\alpha')=-W/(p+1),
+\]
+so the left-hand side is $-W+W=0$; the right-hand side also vanishes
+because $(\alpha_u,\alpha_v)\ne(0,0)$.  If
+$(\alpha_u,\alpha_v)=(0,0)$, then $w(\alpha)=0$ and
+$w(\alpha')=-W$, so the left-hand side is $W$, exactly
+$w^{[q]}(\alpha)$.
+
+It remains to check every other case.  If $\alpha_u<0$, neither
+$\alpha_u$ nor $\alpha_u+1$ is a positive left exponent; in the sole
+exception that needs to be separated, $\alpha_u=-1$, the second
+coefficient $\alpha_u+1$ itself is zero.  Thus both terms still vanish.
+If $\alpha_u=0$ but $\alpha_v\ne0$, then $\alpha$ is inadmissible,
+whereas admissibility of $\alpha'$ would force
+$\alpha_v-1=-1$, hence $\alpha_v=0$, a contradiction.  If
+$\alpha_u>0$ but $\alpha_v\ne-\alpha_u$, then $\alpha$ is
+inadmissible; admissibility of $\alpha'$ would similarly force
+$\alpha_v-1=-(\alpha_u+1)$, hence
+$\alpha_v=-\alpha_u$, again a contradiction.  Finally, if any other
+pair is mismatched or $\alpha_n\ne0$, all three quantities
+$w(\alpha)$, $w(\alpha')$, and $w^{[q]}(\alpha)$ vanish.  This exhausts
+all exponent branches.
+\end{proof}
+
+\begin{corollary}[Euler boundary formula]\label{cor:euler-boundary}
+For arbitrary finite Laurent polynomials $G$ and $F$,
+\begin{align}
+\Lambda\!\left(D_u((x_v-x_u)G)\right)
+&=\Lambda^{[q]}(x_vG),\label{eq:euler-boundary}\\
+\Lambda(D_vF)&=-\Lambda(D_uF).
+\label{eq:paired-euler}
+\end{align}
+\end{corollary}
+
+\begin{proof}
+Write $G=\sum_\beta c_\beta X^\beta$.  The contribution of
+$X^\beta$ to the left-hand side of the first identity is
+\[
+c_\beta\bigl[
+\beta_u w(\beta+\bm e_v)
+-(\beta_u+1)w(\beta+\bm e_u)
+\bigr].
+\]
+Taking $\alpha=\beta+\bm e_v$ in Lemma~\ref{lem:weight-scale}, this is
+exactly $c_\beta w^{[q]}(\beta+\bm e_v)$, the corresponding
+contribution on the right.  Finite summation proves
+\eqref{eq:euler-boundary}.  The second identity follows monomial by
+monomial: whenever $w(\alpha)\ne0$, one has
+$\alpha_v=-\alpha_u$, while inadmissible monomials contribute zero to
+both sides.
+\end{proof}
+
+\subsection{Invariance of the Omitted-Log Functional and Boundary Vanishing}
+
+Let $w=n$ denote the unpaired index.  Because $\Lambda^{[q]}$ requires
+the exponents of $u,v,w$ all to be zero, it is invariant under every
+permutation of these three coordinates.  For $\tau\in S_n$, we use the
+convention
+\[
+(F\circ\tau)(x_1,\ldots,x_n)
+:=F(x_{\tau(1)},\ldots,x_{\tau(n)}).
+\]
+
+\begin{lemma}[Permutation invariance of the omitted-log functional]
+\label{lem:omitted-invariance}
+If $\tau$ permutes only $\{u,v,w\}$, then, for every finite Laurent
+polynomial $F$,
+\begin{equation}\label{eq:omitted-invariance}
+\Lambda^{[q]}(F\circ\tau)=\Lambda^{[q]}(F).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+In $F=\sum_\alpha c_\alpha X^\alpha$, reindex the coefficients by
+$\alpha\mapsto\alpha\circ\tau^{-1}$.  Whenever $w^{[q]}$ is nonzero,
+the three permuted coordinates must all be zero, whereas the other
+paired coordinates are unchanged.  Consequently
+$w^{[q]}(\alpha\circ\tau^{-1})=w^{[q]}(\alpha)$, and the finite sum
+\eqref{eq:Lambda} is invariant.
+\end{proof}
+
+Decomposition by subsets gives
+\begin{equation}\label{eq:P-remainder}
+P_{r,u}-P_{r,v}=(x_v-x_u)R_{r,uv},
+\end{equation}
+where
+\[
+R_{0,uv}=1,\qquad
+R_{r,uv}=E_r^{(u,v)}-E_{r-1}^{(u,v)}\quad(r>0).
+\]
+
+\begin{lemma}[Three-variable boundary vanishing]\label{lem:boundary-zero}
+\begin{equation}\label{eq:boundary-zero}
+\Lambda^{[q]}(x_vR_{r,uv}\Phi_{a,b,k})=0.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+By \eqref{eq:normalized-kernel} and the oddness of $K$, interchanging
+any two variables changes the sign of $\Phi_{a,b,k}$.
+
+Consider first a subset $T$ in the expansion of $E_d^{(u,v)}$, and the
+corresponding monomial
+\[
+M_T=x_v\prod_{j\in T}(-x_j)\Phi_{a,b,k},
+\qquad T\cap\{u,v\}=\varnothing.
+\]
+If $w\notin T$, interchange $u$ and $w$.  Since neither $u$ nor $w$
+lies in $T$, the factor $x_v\prod_{j\in T}(-x_j)$ is fixed;
+$\Phi$ changes sign; and Lemma~\ref{lem:omitted-invariance} says that
+the functional is unchanged.  Hence
+\[
+\Lambda^{[q]}(M_T)=-\Lambda^{[q]}(M_T),
+\]
+and this value is zero.
+
+If $w\in T$, write
+\[
+M_T=x_v(-x_w)\prod_{j\in T\setminus\{w\}}(-x_j)\Phi.
+\]
+Interchange $v$ and $w$.  The first two factors change from
+$x_v(-x_w)$ to $x_w(-x_v)$ and hence their product is fixed; the
+remaining subset avoids $v,w$; $\Phi$ again changes sign; and the
+functional is again invariant by Lemma~\ref{lem:omitted-invariance}.
+This term is therefore also zero.  The argument covers every subset in
+$E_d^{(u,v)}$, including the empty subset when $d=0$.  Since
+$R_{r,uv}$ is a difference of two such polynomials,
+\eqref{eq:boundary-zero} follows.
+\end{proof}
+
+\begin{proposition}[Endpoint-shift recurrence]\label{prop:shift-recurrence}
+For $0\le r<n$,
+\begin{equation}\label{eq:shift-recurrence}
+(n-r)(2b+rK)H_r(a,b)
+=(r+1)\bigl(2a+2+(n-r-1)K\bigr)H_{r+1}(a,b).
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Pair $D_u(P_{r,u}\Phi)$ with $D_v(P_{r,v}\Phi)$.  By
+\eqref{eq:paired-euler}, \eqref{eq:P-remainder}, and
+\eqref{eq:euler-boundary},
+\[
+\begin{aligned}
+&\Lambda\bigl(D_u(P_{r,u}\Phi)+D_v(P_{r,v}\Phi)\bigr)\\
+&\quad=\Lambda\bigl(D_u((P_{r,u}-P_{r,v})\Phi)\bigr)
+=\Lambda^{[q]}(x_vR_{r,uv}\Phi)=0,
+\end{aligned}
+\]
+where the last equality is Lemma~\ref{lem:boundary-zero}.  Sum over all
+$m$ pairs.  For the remaining unpaired coordinate $w=n$, every
+admissible exponent is zero, so $\Lambda(D_wF)=0$.  Therefore
+\begin{equation}\label{eq:total-euler-zero}
+\Lambda\left(\sum_{i=1}^{n}D_i(P_{r,i}\Phi)\right)=0.
+\end{equation}
+Applying $\Lambda$ to Lemma~\ref{lem:local-shift}, using
+\eqref{eq:total-euler-zero}, and rearranging proves
+\eqref{eq:shift-recurrence}.
+\end{proof}
+
+\section{Chu--Vandermonde Summation and the Main Theorem}
+
+The coefficient
+\[
+(r+1)\bigl(2a+2+(n-r-1)K\bigr)
+\]
+on the right-hand side of \eqref{eq:shift-recurrence} is strictly
+positive.  Thus, starting from $H_0(a,b)=L(a,b)$, we solve the
+recurrence by dividing only by this coefficient and never by
+$2b+rK$.  Induction gives
+\begin{equation}\label{eq:Hr}
+H_r(a,b)=\binom nr
+\frac{\prod_{j=0}^{r-1}(2b+jK)}
+{\prod_{j=0}^{r-1}(2a+2+(n-1-j)K)}
+L(a,b).
+\end{equation}
+Empty products are understood to be $1$.  In particular, when $b=0$
+and $r=0$, the recurrence first gives $H_1(a,0)=0$; induction then
+gives $H_r(a,0)=0$ for every $r>0$.  This agrees exactly with the zero
+factor at $j=0$ in the numerator of \eqref{eq:Hr}, so the boundary case
+involves no division by zero.
+
+\begin{lemma}[Finite-step Chu--Vandermonde identity]\label{lem:vandermonde}
+If all denominators below are nonzero, then
+\begin{equation}\label{eq:vandermonde-ratio}
+\sum_{r=0}^{n}\binom nr
+\frac{\prod_{j=0}^{r-1}(B+jK)}
+{\prod_{j=0}^{r-1}(A+(n-1-j)K)}
+=\prod_{i=0}^{n-1}\frac{A+B+iK}{A+iK}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+We first prove the denominator-free polynomial identity
+\begin{equation}\label{eq:vandermonde-poly}
+\sum_{r=0}^{n}\binom nr
+\prod_{j=0}^{r-1}(B+jK)
+\prod_{j=0}^{n-r-1}(A+jK)
+=\prod_{i=0}^{n-1}(A+B+iK).
+\end{equation}
+For $n=0$, both sides are $1$.  In the induction step from $n$ to
+$n+1$, apply Pascal's identity and shift the index in the second
+part from $r$ to $r-1$.  For each fixed $0\le r\le n$, the two
+coefficients combine as
+\[
+\bigl(A+(n-r)K\bigr)+\bigl(B+rK\bigr)=A+B+nK.
+\]
+The left-hand side is therefore $A+B+nK$ times its counterpart of
+order $n$, and the induction hypothesis proves
+\eqref{eq:vandermonde-poly}.  Finally multiply the $r$th summand of
+\eqref{eq:vandermonde-ratio} by
+$\prod_{i=0}^{n-1}(A+iK)$.  Cancelling the last $r$ factors produces
+precisely the $r$th summand of \eqref{eq:vandermonde-poly}.  Division
+by the nonzero product completes the proof.
+\end{proof}
+
+Since
+\[
+\sum_{r=0}^{n}E_r(X)=\prod_{i=1}^{n}(1-x_i),
+\]
+finite linearity gives
+\begin{equation}\label{eq:H-sum}
+\sum_{r=0}^{n}H_r(a,b)=L(a+1,b).
+\end{equation}
+Take
+\[
+A=2a+2,\qquad B=2b
+\]
+in Lemma~\ref{lem:vandermonde}; all denominators are positive.
+Substitution of \eqref{eq:Hr} into \eqref{eq:H-sum} yields
+\begin{equation}\label{eq:L-shift}
+L(a+1,b)=L(a,b)
+\prod_{i=0}^{n-1}
+\frac{2a+2b+2+iK}{2a+2+iK}.
+\end{equation}
+
+Let $R(a,b)$ denote the explicit right-hand side of
+Theorem~\ref{thm:main}.  Applying $(N+2)!!=(N+2)N!!$ factor by factor
+gives
+\begin{equation}\label{eq:R-shift}
+R(a+1,b)=R(a,b)
+\prod_{i=0}^{n-1}
+\frac{2a+2b+2+iK}{2a+2+iK}.
+\end{equation}
+Clearly $R(a,b)=R(b,a)$, while Corollary~\ref{cor:swap} gives
+$L(a,b)=L(b,a)$.
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Section~\ref{sec:dyson} established $L(0,0)=R(0,0)$.  First fix
+$b=0$.  Induction on $a$ using \eqref{eq:L-shift} and
+\eqref{eq:R-shift} gives $L(a,0)=R(a,0)$.  Symmetry in $a,b$ then gives
+$L(0,b)=R(0,b)$.  Finally fix an arbitrary $b$ and induct once more on
+$a$.  This proves $L(a,b)=R(a,b)$ for all nonnegative integers $a,b$,
+which is precisely \eqref{eq:main}.
+\end{proof}
+
+\section{Proof Dependencies and Lean Semantic Audit}
+\label{sec:lean-audit}
+
+\subsection{Logical Closure}
+
+The logical dependencies of the preceding proof are
+\begin{align*}
+\text{Good--Dyson}
+&\Longrightarrow \{\mathbb E(Y^r):r\in\mathbb Z_{\ge0}\},\\
+\text{beta product and compact moment determinacy}
+&\Longrightarrow \mathbb E(Y^{K/2}),\\
+\text{Fourier bridge and augmented Pfaffian}
+&\Longrightarrow L(0,0)=R(0,0),\\
+\text{weight shift and three-variable boundary vanishing}
+&\Longrightarrow \text{endpoint-shift recurrence},\\
+\text{Chu--Vandermonde and endpoint symmetry}
+&\Longrightarrow L(a,b)=R(a,b).
+\end{align*}
+The first implication uses only finite Laurent identities with
+nonnegative integer exponents.  The unique extension from integer to
+half-integer moments takes place between probability measures supported
+on the same compact interval; it does not use the complex Morris
+conjecture.
+
+\subsection{Correspondence Between the Mathematical Objects and the Lean Interfaces}
+
+The final theorem in the formal development is
+\[
+\texttt{LogarithmicMorrisFull.logarithmicMorris\_full}.
+\]
+Its type proves \texttt{LogarithmicMorrisStatement S} for an arbitrary
+\texttt{Setup}. The following table records correspondences at the level
+of mathematical objects and formal interfaces; it does not assert that
+every natural-language argument below has been formalized line by line.
+The explicit definitions in Sections~1 and~2 provide the human-checkable
+identification of the formal statement with the constant-term identity
+of \cite[Theorem~1.3]{LogMorris}.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.31\textwidth}
+                  >{\raggedright\arraybackslash}p{0.61\textwidth}}
+\toprule
+Mathematical object & Concrete Lean interface or theorem\\
+\midrule
+\endfirsthead
+\toprule
+Mathematical object & Concrete Lean interface or theorem\\
+\midrule
+\endhead
+$n=2m+1,\ K=2k+1$ &
+\texttt{Setup.odd\_rank} and \texttt{Setup.K}\\
+The finite Laurent kernel in \eqref{eq:kernel} &
+\texttt{morrisKernel}; its coefficient field is $\mathbb Q$, and its
+exponent type is \texttt{Fin n -> Z}\\
+The weight \eqref{eq:weight} and functional \eqref{eq:Lambda} &
+\texttt{StandardLogAdmissible}, \texttt{standardLogWeight}, and
+\texttt{standardLogCT}\\
+The two sides of the theorem &
+\texttt{logarithmicMorrisLHS} and \texttt{logarithmicMorrisRHS}\\
+The Fourier bridge and $L^1$ control &
+\texttt{ScratchCircleLogFourier},
+\texttt{ScratchPairedLogIntegrable}, and
+\texttt{ScratchLogCTBridge}\\
+The alternating sum of augmented sawtooth values &
+\texttt{LogarithmicMorrisPfaffian}; Lean proves the same finite
+alternating-sum identity by a wholly finite permutation-sum argument,
+rather than formalizing line by line the augmented-matrix congruence
+argument in this section\\
+Ordered chambers, arbitrary permutations, and collisions &
+\texttt{ScratchLogPfaff}, \texttt{ScratchPointwise}, and
+\texttt{ScratchPermutationIntegral}\\
+Good--Dyson integer moments &
+\texttt{ScratchGoodBoundary} and
+\texttt{LogarithmicMorrisEvenMoments}\\
+The beta product and Gauss's formula &
+\texttt{LogarithmicMorrisDysonBetaProduct} and
+\texttt{AristotleGammaMultiplicationFresh}\\
+Pushforward measures and compactly supported moment determinacy &
+\texttt{LogarithmicMorrisDysonMomentComparison} and
+\texttt{AristotleMomentUniquenessFresh}\\
+The local Euler identity &
+\texttt{ScratchShiftLocal}\\
+All branches of the weight-shift identity and three-variable boundary
+vanishing &
+\texttt{ScratchShiftLogZero}\\
+The parameter recurrence and final induction &
+\texttt{LogarithmicMorrisParameterReduction} and
+\texttt{LogarithmicMorrisFull}\\
+\bottomrule
+\end{longtable}
+
+\begin{remark}[The circular logarithm at collision points]
+Lean's \texttt{Complex.log} is a total function, with value $0$ at
+$0$.  The formal files may therefore state identities that hold at
+collision points as well: the Vandermonde factor makes the Laurent
+kernel vanish there.  In ordinary mathematical usage, the principal
+logarithm is generally regarded as defined only away from zero.  We
+accordingly used the extension $\Logc(0)=0$ and performed the analytic
+calculation in Proposition~\ref{prop:circularization} only on the
+full-measure set of pairwise distinct coordinates.  The two conventions
+give the same integrals and Fourier coefficients.
+\end{remark}
+
+\begin{remark}[The rank-one case]
+When $m=0$, the logarithmic product over \texttt{Fin m} is empty, and
+\texttt{StandardLogAdmissible} requires only that the exponent of the
+unique coordinate be zero.  Thus \texttt{standardLogCT} genuinely
+reduces to the ordinary constant term.  The file proving the circular
+Dyson evaluation also treats $n=1$ as a separate branch, in agreement
+with the direct calculation in Section~1.
+\end{remark}
+
+\subsection{Reproducible Build and Axiom Report}
+
+The complete release repository is publicly available at
+\begin{center}
+\url{https://github.com/halfblood12312300-cell/logarithmic-morris-lean}.
+\end{center}
+The Lean proof snapshot audited in this paper is the immutable commit
+\begin{center}
+\texttt{321df3a4af7231df43bd5b976ac366e44d0a1ce6}.
+\end{center}
+The repository root contains \texttt{lakefile.toml},
+\texttt{lake-manifest.json}, and \texttt{lean-toolchain}.  The last of
+these pins
+\[
+\texttt{leanprover/lean4:v4.28.0},
+\]
+and \texttt{lakefile.toml} pins Mathlib at \texttt{v4.28.0}.  On
+22 July 2026, the following commands were run from a fresh checkout:
+\begin{verbatim}
+git clone https://github.com/halfblood12312300-cell/logarithmic-morris-lean.git
+cd logarithmic-morris-lean
+git checkout 321df3a4af7231df43bd5b976ac366e44d0a1ce6
+lake exe cache get
+lake build logarithmicmorris.LogarithmicMorrisFull
+lake env lean --trust=0 logarithmicmorris/LogarithmicMorrisAudit.lean
+\end{verbatim}
+The final-target build succeeded (8082 tasks).  The final audit command
+produced
+the following output:
+\begin{verbatim}
+LogarithmicMorrisFull.logarithmicMorris_full
+  (S : LogarithmicMorrisFull.Setup) :
+  LogarithmicMorrisFull.LogarithmicMorrisStatement S
+'LogarithmicMorrisFull.logarithmicMorris_full' depends on axioms:
+  [propext, Classical.choice, Quot.sound]
+\end{verbatim}
+Thus the axiom closure contains no \texttt{sorryAx} and no external
+axiom introduced for this problem.  The three reported axioms are
+Lean/Mathlib's standard logical dependencies for quotient types,
+propositional extensionality, and classical choice; none encodes a
+Morris, Dyson, Selberg, or integral-evaluation assumption.  The project
+release contains exactly the local transitive import closure required by
+the final theorem, together with its public entry point and audit file.
+No Lean source file in this release contains a \texttt{sorry}
+declaration.  The absence of an unreported logical assumption is not
+inferred from file names or a textual search: it is certified by the
+kernel-level \texttt{\#print axioms} report reproduced above.  The
+repository also includes a GitHub Actions workflow that rebuilds the
+final target, runs an independent \texttt{nanoda} check with
+\texttt{sorryAx} disallowed, and prints the same axiom closure.
+
+\section*{Relation to the Original Conditional Proof}
+
+The unconditional route in this paper differs from the derivation in
+the original article, which was conditional on the complex Morris
+identity.  The conjectural input is replaced precisely in
+Section~\ref{sec:dyson}: Good's integer Dyson identity determines all
+moments of a compactly supported random variable, and a beta product
+then evaluates its $K/2$ moment.  The formal verification ensures that
+all finite algebraic branches, measure pushforwards, integrability
+arguments, and parameter recurrences are closed.  The present paper
+expands those machine-checked interfaces into a self-contained
+mathematical proof.
+
+\begingroup
+\small
+\begin{thebibliography}{9}
+\bibitem{Dyson1962}
+F. J. Dyson,
+\newblock Statistical theory of the energy levels of complex systems I,
+\newblock \emph{Journal of Mathematical Physics} 3 (1962), 140--156.
+
+\bibitem{Good1970}
+I. J. Good,
+\newblock Short proof of a conjecture by Dyson,
+\newblock \emph{Journal of Mathematical Physics} 11 (1970), 1884.
+
+\bibitem{LogMorris}
+T. Chappell, A. Lascoux, S. O. Warnaar, and W. Zudilin,
+\newblock Logarithmic and complex constant term identities,
+\newblock in \emph{Computational and Analytical Mathematics},
+Springer Proceedings in Mathematics and Statistics 50
+(2013), 219--250; arXiv:1112.3130.
+
+\bibitem{Andrews1999}
+G. E. Andrews, R. Askey, and R. Roy,
+\newblock \emph{Special Functions},
+\newblock Encyclopedia of Mathematics and its Applications 71,
+Cambridge University Press, Cambridge, 1999.
+
+\bibitem{Rudin1976}
+W. Rudin,
+\newblock \emph{Principles of Mathematical Analysis}, 3rd ed.,
+\newblock McGraw--Hill, New York, 1976.
+
+\bibitem{Knuth1996}
+D. E. Knuth,
+\newblock Overlapping Pfaffians,
+\newblock \emph{Electronic Journal of Combinatorics} 3 (1996),
+no.~2, Research Paper 5.
+\end{thebibliography}
+\endgroup
+
+\end{document}

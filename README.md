@@ -69,7 +69,9 @@ Key entry points:
 - `logarithmicmorris/LogarithmicMorrisDysonMomentEvaluation.lean`:
   unconditional Dyson base-case evaluation.
 
-The accompanying English manuscript is stored in `paper/`.
+The accompanying English manuscript is available as
+[PDF](paper/Logarithmic_Morris_Unconditional_Proof_20260722.pdf) and
+[LaTeX source](paper/Logarithmic_Morris_Unconditional_Proof_20260722.tex).
 
 ## Continuous verification
 
