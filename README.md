@@ -75,8 +75,9 @@ The accompanying English manuscript is available as
 
 ## Continuous verification
 
-The GitHub Actions workflow builds the final target, runs an independent
-`nanoda` check with `sorryAx` disallowed, and prints the final theorem's axiom
+The GitHub Actions workflow rejects `sorry`, `sorryAx`, and local `axiom`
+declarations, builds the complete release library, runs the Lean 4.28
+`leanchecker` environment verifier, and prints the final theorem's axiom
 closure under `--trust=0`.
 
 ## Author

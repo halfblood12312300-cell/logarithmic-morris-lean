@@ -13,6 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Reject unfinished proofs and local axioms
+        run: |
+          if grep -R -n -E --include='*.lean' \
+            '(^|[^[:alnum:]_])sorry(Ax)?([^[:alnum:]_]|$)|^[[:space:]]*axiom[[:space:]]' \
+            logarithmicmorris laurent logarithmicmorris.lean laurent.lean; then
+            echo 'Found sorry, sorryAx, or a local axiom declaration.' >&2
+            exit 1
+          fi
       - uses: leanprover/lean-action@v1
         with:
           auto-config: false
@@ -20,7 +28,7 @@ jobs:
           build-args: logarithmicmorris
           test: false
           lint: false
-          nanoda: true
-          nanoda-allow-sorry: false
+      - name: Replay the release modules with leanchecker
+        run: lake env leanchecker logarithmicmorris laurent
       - name: Report the final theorem's axiom closure
         run: lake env lean --trust=0 logarithmicmorris/LogarithmicMorrisAudit.lean
